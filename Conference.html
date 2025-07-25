@@ -1,88 +1,123 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.6">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎯 Conference Pinwheel Picker</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 40px;
+      text-align: center;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #0059c1;
+    }
+    table {
+      margin: 30px auto;
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 800px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f1f1;
+    }
+    .budget {
+      font-size: 18px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="en"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Conference Pinwheel Picker&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>button { padding: 10px 20px; font-size: 16px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>#selected { margin-top: 20px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>table { margin: 20px auto; border-collapse: collapse; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>td, th { border: 1px solid #ccc; padding: 8px 12px; }</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;h1&gt;🎯 Pinwheel Conference Picker&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;p&gt;Click the button to spin the pinwheel and pick conference attendees until the $5,000 budget is reached.&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;button onclick="spinPinwheel()"&gt;Spin Pinwheel&lt;/button&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="selected"&gt;&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const people = [</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ email: "akarunakaran@salesforce.com", event: "AI Accelerator Institute | Toronto, CA", cost: 350 },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ email: "d.ding@salesforce.com", event: "GenAI World 2025 | Boston, USA", cost: 1595 },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ email: "dixita.gupta@salesforce.com", event: "Grace Hopper Celebration 2025 | Chicago, USA", cost: 1350 },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ email: "mrodriguezlazaro@salesforce.com", event: "Grace Hopper Celebration 2025 | Chicago, USA", cost: 1350 },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ email: "svirmani@salesforce.com", event: "The AI Conference | San Francisco, USA", cost: 850 },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ email: "sriazi@salesforce.com", event: "The AI Conference | San Francisco, USA", cost: 850 },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>{ email: "lingwei.jiang@salesforce.com", event: "The AI Conference | San Francisco, USA", cost: 850 }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>let selected = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let budget = 0;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const maxBudget = 5000;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function spinPinwheel() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (budget &gt;= maxBudget) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>alert("Budget limit reached!");</p>
-<p class="p1"><span class="Apple-converted-space">        </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>const remaining = people.filter(p =&gt; !selected.includes(p));</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (remaining.length === 0) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>alert("Everyone has already been selected!");</p>
-<p class="p1"><span class="Apple-converted-space">        </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>const pick = remaining[Math.floor(Math.random() * remaining.length)];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (budget + pick.cost &lt;= maxBudget) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>selected.push(pick);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>budget += pick.cost;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>alert(`Skipping ${pick.email} as it exceeds the remaining budget.`);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>render();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function render() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>let html = `&lt;h3&gt;Selected Attendees&lt;/h3&gt;&lt;table&gt;&lt;tr&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Event&lt;/th&gt;&lt;th&gt;Cost (USD)&lt;/th&gt;&lt;/tr&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>selected.forEach(p =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>html += `&lt;tr&gt;&lt;td&gt;${p.email}&lt;/td&gt;&lt;td&gt;${p.event}&lt;/td&gt;&lt;td&gt;$${p.cost}&lt;/td&gt;&lt;/tr&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">      </span>html += `&lt;/table&gt;&lt;p&gt;&lt;strong&gt;Total Budget Used: $${budget}&lt;/strong&gt; / $5000&lt;/p&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById("selected").innerHTML = html;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+  <h1>🎯 Conference Pinwheel Picker</h1>
+  <p>Click the button to randomly select conference attendees until the $5,000 budget is reached.</p>
+
+  <button onclick="spinPinwheel()">Spin Pinwheel</button>
+  <div class="budget" id="budgetStatus">Total Budget Used: $0 / $5000</div>
+
+  <div id="selected"></div>
+
+  <script>
+    const people = [
+      { email: "akarunakaran@salesforce.com", event: "AI Accelerator Institute | Toronto, CA", cost: 350 },
+      { email: "d.ding@salesforce.com", event: "GenAI World 2025 | Boston, USA", cost: 1595 },
+      { email: "dixita.gupta@salesforce.com", event: "Grace Hopper Celebration 2025 | Chicago, USA", cost: 1350 },
+      { email: "mrodriguezlazaro@salesforce.com", event: "Grace Hopper Celebration 2025 | Chicago, USA", cost: 1350 },
+      { email: "svirmani@salesforce.com", event: "The AI Conference | San Francisco, USA", cost: 850 },
+      { email: "sriazi@salesforce.com", event: "The AI Conference | San Francisco, USA", cost: 850 },
+      { email: "lingwei.jiang@salesforce.com", event: "The AI Conference | San Francisco, USA", cost: 850 }
+    ];
+
+    let selected = [];
+    let budget = 0;
+    const maxBudget = 5000;
+
+    function spinPinwheel() {
+      if (budget >= maxBudget) {
+        alert("🎉 Budget limit reached!");
+        return;
+      }
+
+      const remaining = people.filter(p => !selected.includes(p));
+      if (remaining.length === 0) {
+        alert("All entries selected!");
+        return;
+      }
+
+      const pick = remaining[Math.floor(Math.random() * remaining.length)];
+
+      if (budget + pick.cost <= maxBudget) {
+        selected.push(pick);
+        budget += pick.cost;
+        updateDisplay();
+      } else {
+        alert(`⛔ Skipped ${pick.email} — exceeds remaining budget.`);
+      }
+    }
+
+    function updateDisplay() {
+      let html = `<table>
+                    <tr>
+                      <th>Email</th>
+                      <th>Event</th>
+                      <th>Cost (USD)</th>
+                    </tr>`;
+      selected.forEach(p => {
+        html += `<tr>
+                   <td>${p.email}</td>
+                   <td>${p.event}</td>
+                   <td>$${p.cost}</td>
+                 </tr>`;
+      });
+      html += `</table>`;
+
+      document.getElementById("selected").innerHTML = html;
+      document.getElementById("budgetStatus").innerText = `Total Budget Used: $${budget} / $${maxBudget}`;
+    }
+  </script>
+
 </body>
 </html>
