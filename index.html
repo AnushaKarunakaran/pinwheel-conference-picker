@@ -386,8 +386,11 @@
                 return;
             }
 
-            spinning = true;
+            // Remove the user from the wheel and reset before the next spin
+            drawWheel(availableParticipants);
             resultDisplay.textContent = 'Spinning...';
+
+            spinning = true;
             spinButton.disabled = true;
             lastChancePrompt.style.display = 'none';
 
@@ -438,6 +441,8 @@
 
                 spinCanvas.style.transition = 'none';
                 spinCanvas.style.transform = `rotate(${normalizedDegree}deg)`;
+                
+                spinButton.disabled = false;
 
             }, 5000);
         }
