@@ -46,7 +46,6 @@
             width: 450px;
             height: 450px;
             border-radius: 50%;
-            overflow: hidden;
             border: 8px solid #cbd5e1;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
             background-color: #ffffff;
@@ -60,22 +59,7 @@
             height: 100%;
             transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
-
-        /* The pointer that indicates the winning segment */
-        .static-pointer {
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 25px solid transparent;
-            border-right: 25px solid transparent;
-            border-bottom: 40px solid #ef4444; /* Red color for visibility */
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
-            z-index: 10;
-        }
-
+        
         .spin-button {
             margin-top: 40px;
             padding: 16px 40px;
@@ -152,6 +136,32 @@
             color: #475569;
         }
 
+        .last-chance-prompt {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .last-chance-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        .last-chance-button:hover {
+            background-color: #d97706;
+        }
+
         @media (max-width: 500px) {
             .wheel-container {
                 width: 300px;
@@ -164,14 +174,17 @@
 
     <div class="main-container">
         <div id="budgetDisplay" class="budget-display">
-            Total Budget: $5000
+            Remaining Budget: $5000
         </div>
         <div class="wheel-container">
             <canvas id="spinCanvas" width="450" height="450"></canvas>
-            <div class="static-pointer"></div>
         </div>
         <button class="spin-button" id="spinButton">Spin the Wheel!</button>
         <p id="result">Who will win?</p>
+        <div id="lastChancePrompt" class="last-chance-prompt">
+            <p>Budget exhausted! Do you want to allow one more user selection?</p>
+            <button id="lastChanceButton" class="last-chance-button">Yes, one more!</button>
+        </div>
         <div class="selected-users-list">
             <h2>Selected Users</h2>
             <ul id="selectedUsersList">
@@ -198,16 +211,18 @@
         const resultDisplay = document.getElementById('result');
         const budgetDisplay = document.getElementById('budgetDisplay');
         const selectedUsersList = document.getElementById('selectedUsersList');
+        const lastChancePrompt = document.getElementById('lastChancePrompt');
+        const lastChanceButton = document.getElementById('lastChanceButton');
         const ctx = spinCanvas.getContext('2d');
 
         // State variables
         let remainingBudget = 5000;
         let spinning = false;
         let selectedUsers = [];
+        let oneLastChanceGiven = false;
 
         // Function to trigger the confetti effect
         function showConfetti() {
-            // A simple confetti burst
             confetti({
                 particleCount: 150,
                 spread: 120,
@@ -215,19 +230,31 @@
             });
         }
 
-        // Function to update the budget display on the page
+        // Function to update the budget display on the page and check for end conditions
         function updateBudgetDisplay() {
             budgetDisplay.textContent = `Remaining Budget: $${remainingBudget}`;
             const availableParticipants = participants.filter(p => !selectedUsers.includes(p.name));
             
             if (availableParticipants.length === 0) {
-                spinButton.disabled = true;
+                spinButton.style.display = 'none';
+                lastChancePrompt.style.display = 'none';
                 resultDisplay.textContent = 'All users have been selected!';
             } else {
                 const highestBudget = Math.max(...availableParticipants.map(p => p.budget));
-                spinButton.disabled = remainingBudget < highestBudget;
-                if (spinButton.disabled) {
-                    resultDisplay.textContent = 'Budget exhausted!';
+                if (remainingBudget < highestBudget) {
+                    spinButton.disabled = true;
+                    if (!oneLastChanceGiven) {
+                        resultDisplay.textContent = 'Budget exhausted. No one else can be chosen.';
+                        lastChancePrompt.style.display = 'flex';
+                    } else {
+                        spinButton.style.display = 'none';
+                        lastChancePrompt.style.display = 'none';
+                        resultDisplay.textContent = 'Budget exhausted. All users have been selected!';
+                    }
+                } else {
+                    spinButton.disabled = false;
+                    spinButton.style.display = 'block';
+                    lastChancePrompt.style.display = 'none';
                 }
             }
         }
@@ -249,10 +276,12 @@
             const centerX = spinCanvas.width / 2;
             const centerY = spinCanvas.height / 2;
             const radius = Math.min(centerX, centerY) - 10;
+            const textRadius = radius * 0.7;
+            const numParticipants = currentParticipants.length;
+            const sliceAngle = (2 * Math.PI) / numParticipants;
+            const gapAngle = (2 * Math.PI) / 360;
 
-            const totalParticipantBudget = currentParticipants.reduce((sum, p) => sum + p.budget, 0);
-
-            if (totalParticipantBudget === 0) {
+            if (numParticipants === 0) {
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
                 ctx.closePath();
@@ -265,13 +294,13 @@
             }
 
             currentParticipants.forEach(p => {
-                const sliceAngle = (p.budget / totalParticipantBudget) * 2 * Math.PI;
-                const endAngle = currentAngle + sliceAngle;
+                const startAngle = currentAngle + gapAngle / 2;
+                const endAngle = currentAngle + sliceAngle - gapAngle / 2;
 
                 // Draw the segment (pie slice)
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, currentAngle, endAngle);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                 ctx.closePath();
                 ctx.fillStyle = p.color;
                 ctx.fill();
@@ -279,7 +308,7 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Highlight the winning segment
+                // Highlight the winning segment with a shadow
                 if (p.name === winnerName) {
                     ctx.save();
                     ctx.shadowColor = '#000';
@@ -289,9 +318,8 @@
                     ctx.restore();
                 }
 
-                // Add the text for name and budget
+                // Add the text for name
                 const midAngle = currentAngle + sliceAngle / 2;
-                const textRadius = radius * 0.7;
                 const textX = centerX + textRadius * Math.cos(midAngle);
                 const textY = centerY + textRadius * Math.sin(midAngle);
 
@@ -302,25 +330,25 @@
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 16px Arial';
 
-                const lines = [`${p.name}`, `$${p.budget}`];
-                lines.forEach((line, i) => {
-                    ctx.fillText(line, 0, i * 20);
-                });
+                ctx.fillText(p.name, 0, 0); // Only draw the name
                 ctx.restore();
 
-                currentAngle = endAngle;
+                currentAngle += sliceAngle;
             });
         }
-
-        // Handle the spin button click
-        spinButton.addEventListener('click', () => {
+        
+        // Main function to handle a spin
+        function performSpin() {
             const availableParticipants = participants.filter(p => !selectedUsers.includes(p.name));
 
-            if (spinning || remainingBudget <= 0 || availableParticipants.length === 0) return;
+            if (spinning || availableParticipants.length === 0) return;
+            
             spinning = true;
             resultDisplay.textContent = 'Spinning...';
             spinButton.disabled = true;
+            lastChancePrompt.style.display = 'none';
 
+            // Recalculate total budget based on available participants for equal distribution
             const totalAvailableBudget = availableParticipants.reduce((sum, p) => sum + p.budget, 0);
 
             // Calculate a random degree to spin to
@@ -340,12 +368,13 @@
 
                 let angleCheck = 0;
                 let winner = null;
+                const numParticipants = availableParticipants.length;
+                const sliceAngle = 360 / numParticipants;
 
                 for (let i = 0; i < availableParticipants.length; i++) {
                     const p = availableParticipants[i];
-                    const sliceAngle = (p.budget / totalAvailableBudget) * 360;
                     angleCheck += sliceAngle;
-
+                    
                     if (pointerAngle <= angleCheck) {
                         winner = p;
                         break;
@@ -356,12 +385,12 @@
                     winner = availableParticipants[0];
                 }
 
-                if (remainingBudget >= winner.budget) {
+                if (remainingBudget >= winner.budget || oneLastChanceGiven) {
                     remainingBudget -= winner.budget;
                     resultDisplay.innerHTML = `🎉 The winner is <span class="highlight-text">${winner.name}</span> with a budget of $${winner.budget}! 🎉`;
                     selectedUsers.push(winner.name);
                     updateSelectedUsersList();
-                    showConfetti(); // Trigger confetti
+                    showConfetti();
                 } else {
                     resultDisplay.textContent = `${winner.name} was selected, but there is not enough budget remaining.`;
                 }
@@ -373,12 +402,18 @@
                 spinCanvas.style.transform = `rotate(${normalizedDegree}deg)`;
 
             }, 5000);
+        }
+        
+        // Event listeners
+        spinButton.addEventListener('click', performSpin);
+        lastChanceButton.addEventListener('click', () => {
+            oneLastChanceGiven = true;
+            performSpin();
         });
 
         // Initial drawing and setup
         drawWheel(participants);
         updateBudgetDisplay();
-
     </script>
 </body>
 </html>
