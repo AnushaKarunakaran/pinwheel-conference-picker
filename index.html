@@ -3,439 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conference Selection Pinwheel</title>
+    <title>Conference Budget Spin Wheel</title>
+    <!-- Use a reliable confetti library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f4f8;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: #334155;
+            text-align: center;
             padding: 20px;
         }
 
-        .game-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 1200px;
-            width: 100%;
-        }
-
-        .header {
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .budget-info {
+        .main-container {
             display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
         }
 
-        .budget-card {
-            background: #34495e;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 15px;
+        .budget-display {
+            font-size: 24px;
             font-weight: bold;
-            font-size: 1.1em;
-        }
-
-        .budget-remaining {
-            background: #27ae60;
-        }
-
-        .budget-spent {
-            background: #e74c3c;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #cbd5e1;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .wheel-container {
             position: relative;
-            display: inline-block;
-            margin: 20px 0;
-        }
-
-        .wheel {
-            width: 400px;
-            height: 400px;
+            width: 450px;
+            height: 450px;
             border-radius: 50%;
-            position: relative;
             overflow: hidden;
-            border: 8px solid #2c3e50;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 8px solid #cbd5e1;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            background-color: #ffffff;
         }
 
-        .wheel-segment {
+        #spinCanvas {
             position: absolute;
-            width: 50%;
-            height: 50%;
-            transform-origin: right bottom;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            text-align: center;
-            line-height: 1.2;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
-        .segment-0 { background: #e74c3c; transform: rotate(0deg); }
-        .segment-1 { background: #f39c12; transform: rotate(51.43deg); }
-        .segment-2 { background: #f1c40f; transform: rotate(102.86deg); }
-        .segment-3 { background: #27ae60; transform: rotate(154.29deg); }
-        .segment-4 { background: #3498db; transform: rotate(205.71deg); }
-        .segment-5 { background: #9b59b6; transform: rotate(257.14deg); }
-        .segment-6 { background: #e67e22; transform: rotate(308.57deg); }
-
-        .wheel-pointer {
+        /* The pointer that indicates the winning segment */
+        .static-pointer {
             position: absolute;
-            top: -10px;
+            top: -40px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 30px solid #2c3e50;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 40px solid #ef4444; /* Red color for visibility */
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
             z-index: 10;
         }
 
         .spin-button {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            margin-top: 40px;
+            padding: 16px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #10b981; /* Tailwind's emerald-500 */
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 50px;
+            border-radius: 9999px;
             cursor: pointer;
-            margin: 20px;
-            transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.1s ease;
         }
 
-        .spin-button:hover {
+        .spin-button:hover:not(:disabled) {
+            background-color: #059669;
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .spin-button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
         }
 
         .spin-button:disabled {
-            background: #95a5a6;
+            background-color: #94a3b8;
             cursor: not-allowed;
-            transform: none;
+            box-shadow: none;
         }
 
-        .results {
+        #result {
             margin-top: 30px;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
         }
 
-        .selected-conferences {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+        .highlight-text {
+            color: #10b981;
         }
 
-        .conference-card {
-            background: white;
-            border: 2px solid #ecf0f1;
-            border-radius: 15px;
+        .selected-users-list {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 400px;
+            background-color: #e2e8f0;
             padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .conference-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .conference-name {
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-
-        .conference-email {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .conference-cost {
-            color: #27ae60;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        .message {
-            margin-top: 20px;
-            padding: 15px;
             border-radius: 10px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .selected-users-list h2 {
+            font-size: 20px;
             font-weight: bold;
+            margin-bottom: 10px;
+            color: #475569;
         }
 
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .selected-users-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .warning-message {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
+        .selected-users-list li {
+            background-color: #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-weight: bold;
+            color: #475569;
         }
 
-        .game-over {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        @media (max-width: 768px) {
-            .wheel {
+        @media (max-width: 500px) {
+            .wheel-container {
                 width: 300px;
                 height: 300px;
-            }
-            
-            .budget-info {
-                flex-direction: column;
-                align-items: center;
-                gap: 15px;
-            }
-            
-            .wheel-segment {
-                font-size: 9px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="header">
-            <h1>🎯 Conference Selection Pinwheel</h1>
-            <p>Spin the wheel to select conferences within your budget!</p>
-        </div>
 
-        <div class="budget-info">
-            <div class="budget-card">
-                Total Budget: $5,000
-            </div>
-            <div class="budget-card budget-remaining">
-                Remaining: $<span id="remaining-budget">5000</span>
-            </div>
-            <div class="budget-card budget-spent">
-                Spent: $<span id="spent-budget">0</span>
-            </div>
+    <div class="main-container">
+        <div id="budgetDisplay" class="budget-display">
+            Total Budget: $5000
         </div>
-
         <div class="wheel-container">
-            <div class="wheel-pointer"></div>
-            <div class="wheel" id="wheel">
-                <div class="wheel-segment segment-0">
-                    Anusha<br>AI Accelerator<br>Toronto, CA<br>$350
-                </div>
-                <div class="wheel-segment segment-1">
-                    Diane Ding<br>GenAI World<br>Boston, USA<br>$1,595
-                </div>
-                <div class="wheel-segment segment-2">
-                    Dixita<br>Grace Hopper<br>Chicago, USA<br>$1,350
-                </div>
-                <div class="wheel-segment segment-3">
-                    Maria<br>Grace Hopper<br>Chicago, USA<br>$1,350
-                </div>
-                <div class="wheel-segment segment-4">
-                    Sonia<br>AI Conference<br>San Francisco<br>$850
-                </div>
-                <div class="wheel-segment segment-5">
-                    Salma<br>AI Conference<br>San Francisco<br>$850
-                </div>
-                <div class="wheel-segment segment-6">
-                    Vivian<br>AI Conference<br>San Francisco<br>$850
-                </div>
-            </div>
+            <canvas id="spinCanvas" width="450" height="450"></canvas>
+            <div class="static-pointer"></div>
         </div>
-
-        <button class="spin-button" id="spin-btn" onclick="spinWheel()">
-            🎲 SPIN THE WHEEL!
-        </button>
-
-        <div class="results">
-            <div id="message"></div>
-            <div class="selected-conferences" id="selected-conferences"></div>
+        <button class="spin-button" id="spinButton">Spin the Wheel!</button>
+        <p id="result">Who will win?</p>
+        <div class="selected-users-list">
+            <h2>Selected Users</h2>
+            <ul id="selectedUsersList">
+                <!-- Selected users will be added here -->
+            </ul>
         </div>
     </div>
 
     <script>
-        const conferences = [
-            {
-                attendee: "Anusha",
-                name: "AI Accelerator Institute",
-                location: "Toronto, CA",
-                cost: 350
-            },
-            {
-                attendee: "Diane Ding",
-                name: "GenAI World 2025",
-                location: "Boston, USA",
-                cost: 1595
-            },
-            {
-                attendee: "Dixita",
-                name: "Grace Hopper Celebration 2025",
-                location: "Chicago, USA",
-                cost: 1350
-            },
-            {
-                attendee: "Maria",
-                name: "Grace Hopper Celebration 2025",
-                location: "Chicago, USA",
-                cost: 1350
-            },
-            {
-                attendee: "Sonia",
-                name: "The AI Conference",
-                location: "San Francisco, USA",
-                cost: 850
-            },
-            {
-                attendee: "Salma",
-                name: "The AI Conference",
-                location: "San Francisco, USA",
-                cost: 850
-            },
-            {
-                attendee: "Vivian",
-                name: "The AI Conference",
-                location: "San Francisco, USA",
-                cost: 850
-            }
+        // Initial data for the participants and their budgets
+        const participants = [
+            { name: "Anusha", budget: 350, color: "#f9a8d4" },
+            { name: "Diane", budget: 1595, color: "#fcd34d" },
+            { name: "Dixita", budget: 1350, color: "#60a5fa" },
+            { name: "Maria", budget: 1350, color: "#a5b4fc" },
+            { name: "Sonia", budget: 850, color: "#34d399" },
+            { name: "Salma", budget: 850, color: "#fb7185" },
+            { name: "Vivian", budget: 850, color: "#a78bfa" }
         ];
 
-        let selectedConferences = [];
-        let totalBudget = 5000;
-        let spentBudget = 0;
-        let isSpinning = false;
+        // Get DOM elements
+        const spinCanvas = document.getElementById('spinCanvas');
+        const spinButton = document.getElementById('spinButton');
+        const resultDisplay = document.getElementById('result');
+        const budgetDisplay = document.getElementById('budgetDisplay');
+        const selectedUsersList = document.getElementById('selectedUsersList');
+        const ctx = spinCanvas.getContext('2d');
 
-        function updateBudgetDisplay() {
-            document.getElementById('remaining-budget').textContent = totalBudget - spentBudget;
-            document.getElementById('spent-budget').textContent = spentBudget;
-        }
+        // State variables
+        let remainingBudget = 5000;
+        let spinning = false;
+        let selectedUsers = [];
 
-        function displaySelectedConferences() {
-            const container = document.getElementById('selected-conferences');
-            container.innerHTML = '';
-            
-            selectedConferences.forEach(conf => {
-                const card = document.createElement('div');
-                card.className = 'conference-card';
-                card.innerHTML = `
-                    <div class="conference-name">${conf.name}</div>
-                    <div class="conference-email"><strong>Attendee:</strong> ${conf.attendee}</div>
-                    <div>${conf.location}</div>
-                    <div class="conference-cost">${conf.cost}</div>
-                `;
-                container.appendChild(card);
+        // Function to trigger the confetti effect
+        function showConfetti() {
+            // A simple confetti burst
+            confetti({
+                particleCount: 150,
+                spread: 120,
+                origin: { y: 0.6 }
             });
         }
 
-        function showMessage(text, type = 'success') {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}-message`;
+        // Function to update the budget display on the page
+        function updateBudgetDisplay() {
+            budgetDisplay.textContent = `Remaining Budget: $${remainingBudget}`;
+            const availableParticipants = participants.filter(p => !selectedUsers.includes(p.name));
+            
+            if (availableParticipants.length === 0) {
+                spinButton.disabled = true;
+                resultDisplay.textContent = 'All users have been selected!';
+            } else {
+                const highestBudget = Math.max(...availableParticipants.map(p => p.budget));
+                spinButton.disabled = remainingBudget < highestBudget;
+                if (spinButton.disabled) {
+                    resultDisplay.textContent = 'Budget exhausted!';
+                }
+            }
         }
 
-        function spinWheel() {
-            if (isSpinning) return;
-            
-            isSpinning = true;
-            const spinBtn = document.getElementById('spin-btn');
-            spinBtn.disabled = true;
-            spinBtn.textContent = '🌪️ SPINNING...';
-            
-            const wheel = document.getElementById('wheel');
-            const randomSpin = Math.random() * 360 + 720; // At least 2 full rotations
-            wheel.style.transform = `rotate(${randomSpin}deg)`;
-            
+        // Function to update the list of selected users
+        function updateSelectedUsersList() {
+            selectedUsersList.innerHTML = '';
+            selectedUsers.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = user;
+                selectedUsersList.appendChild(li);
+            });
+        }
+
+        // Function to draw the wheel segments and text
+        function drawWheel(currentParticipants, winnerName = null) {
+            ctx.clearRect(0, 0, spinCanvas.width, spinCanvas.height);
+            let currentAngle = 0;
+            const centerX = spinCanvas.width / 2;
+            const centerY = spinCanvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 10;
+
+            const totalParticipantBudget = currentParticipants.reduce((sum, p) => sum + p.budget, 0);
+
+            if (totalParticipantBudget === 0) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.closePath();
+                ctx.fillStyle = '#ccc';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                return;
+            }
+
+            currentParticipants.forEach(p => {
+                const sliceAngle = (p.budget / totalParticipantBudget) * 2 * Math.PI;
+                const endAngle = currentAngle + sliceAngle;
+
+                // Draw the segment (pie slice)
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Highlight the winning segment
+                if (p.name === winnerName) {
+                    ctx.save();
+                    ctx.shadowColor = '#000';
+                    ctx.shadowBlur = 15;
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Add the text for name and budget
+                const midAngle = currentAngle + sliceAngle / 2;
+                const textRadius = radius * 0.7;
+                const textX = centerX + textRadius * Math.cos(midAngle);
+                const textY = centerY + textRadius * Math.sin(midAngle);
+
+                ctx.save();
+                ctx.translate(textX, textY);
+                ctx.rotate(midAngle + Math.PI / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+
+                const lines = [`${p.name}`, `$${p.budget}`];
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, 0, i * 20);
+                });
+                ctx.restore();
+
+                currentAngle = endAngle;
+            });
+        }
+
+        // Handle the spin button click
+        spinButton.addEventListener('click', () => {
+            const availableParticipants = participants.filter(p => !selectedUsers.includes(p.name));
+
+            if (spinning || remainingBudget <= 0 || availableParticipants.length === 0) return;
+            spinning = true;
+            resultDisplay.textContent = 'Spinning...';
+            spinButton.disabled = true;
+
+            const totalAvailableBudget = availableParticipants.reduce((sum, p) => sum + p.budget, 0);
+
+            // Calculate a random degree to spin to
+            const totalRevolutions = 5;
+            const randomDegree = Math.floor(Math.random() * 360);
+            const spinToDegree = (totalRevolutions * 360) + randomDegree;
+
+            spinCanvas.style.transition = 'transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)';
+            spinCanvas.style.transform = `rotate(${spinToDegree}deg)`;
+
             setTimeout(() => {
-                // Calculate which segment was selected
-                const normalizedDegree = randomSpin % 360;
-                const segmentAngle = 360 / 7;
-                const selectedIndex = Math.floor((360 - normalizedDegree) / segmentAngle) % 7;
-                
-                const selectedConference = conferences[selectedIndex];
-                
-                // Check if this conference is already selected
-                const alreadySelected = selectedConferences.some(conf => 
-                    conf.attendee === selectedConference.attendee
-                );
-                
-                if (alreadySelected) {
-                    showMessage(`${selectedConference.attendee} is already selected! Spin again.`, 'warning');
-                } else if (spentBudget + selectedConference.cost > totalBudget) {
-                    showMessage(`Cannot send ${selectedConference.attendee} to ${selectedConference.name} (${selectedConference.cost}) - exceeds remaining budget!`, 'warning');
-                } else {
-                    // Add conference to selection
-                    selectedConferences.push(selectedConference);
-                    spentBudget += selectedConference.cost;
-                    updateBudgetDisplay();
-                    displaySelectedConferences();
-                    
-                    const remaining = totalBudget - spentBudget;
-                    if (remaining > 0) {
-                        showMessage(`🎉 ${selectedConference.attendee} selected for ${selectedConference.name}! Remaining budget: ${remaining}`, 'success');
-                    } else {
-                        showMessage(`🎉 Budget fully utilized! Total conferences selected: ${selectedConferences.length}`, 'game-over');
-                        spinBtn.style.display = 'none';
-                        return;
+                spinning = false;
+
+                let normalizedDegree = spinToDegree % 360;
+                let pointerAngle = (360 - normalizedDegree) + 90;
+                if (pointerAngle > 360) pointerAngle -= 360;
+
+                let angleCheck = 0;
+                let winner = null;
+
+                for (let i = 0; i < availableParticipants.length; i++) {
+                    const p = availableParticipants[i];
+                    const sliceAngle = (p.budget / totalAvailableBudget) * 360;
+                    angleCheck += sliceAngle;
+
+                    if (pointerAngle <= angleCheck) {
+                        winner = p;
+                        break;
                     }
                 }
-                
-                // Check if any more conferences can be afforded
-                const remainingBudget = totalBudget - spentBudget;
-                const availableConferences = conferences.filter(conf => 
-                    conf.cost <= remainingBudget && 
-                    !selectedConferences.some(selected => selected.attendee === conf.attendee)
-                );
-                
-                if (availableConferences.length === 0) {
-                    showMessage(`🎯 Game Over! No more conferences fit within remaining budget of $${remainingBudget}`, 'game-over');
-                    spinBtn.style.display = 'none';
-                } else {
-                    isSpinning = false;
-                    spinBtn.disabled = false;
-                    spinBtn.textContent = '🎲 SPIN AGAIN!';
-                }
-            }, 3000);
-        }
 
-        // Initialize display
+                if (!winner) {
+                    winner = availableParticipants[0];
+                }
+
+                if (remainingBudget >= winner.budget) {
+                    remainingBudget -= winner.budget;
+                    resultDisplay.innerHTML = `🎉 The winner is <span class="highlight-text">${winner.name}</span> with a budget of $${winner.budget}! 🎉`;
+                    selectedUsers.push(winner.name);
+                    updateSelectedUsersList();
+                    showConfetti(); // Trigger confetti
+                } else {
+                    resultDisplay.textContent = `${winner.name} was selected, but there is not enough budget remaining.`;
+                }
+
+                drawWheel(availableParticipants, winner.name);
+                updateBudgetDisplay();
+
+                spinCanvas.style.transition = 'none';
+                spinCanvas.style.transform = `rotate(${normalizedDegree}deg)`;
+
+            }, 5000);
+        });
+
+        // Initial drawing and setup
+        drawWheel(participants);
         updateBudgetDisplay();
+
     </script>
 </body>
 </html>
